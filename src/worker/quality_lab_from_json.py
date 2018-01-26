@@ -1,14 +1,17 @@
 # -*- coding: UTF-8 -*-
 import json
-import src.struct.input as inputStruct
-import src.struct.output as outputStruct
+import src.define.input as inputStruct
+import src.define.output as outputStruct
 import src.media.transcode as transcode
 import src.score.quality_worker as qualityWorker
 import tool.logger as logger
 
 module_name = "worker.quality_lab_from_json"
 
-trans_parm = '-pix_fmt yuv420p -vcodec libx264 -x264opts psy=0:ref=5:keyint=300:min-keyint=300:scenecut=0:chroma_qp_offset=3:aq_mode=2:threads=36:lookahead-threads=4:aq-strength=1.20:deblock=1,-3,-3 -copyts -crf 25 -f mp4 -preset veryslow'
+trans_parm1 = '-pix_fmt yuv420p -vcodec libx264 -x264opts psy=0:ref=5:keyint=300:min-keyint=250:scenecut=0:b-pyramid=normal:mixed-refs=1:chroma_qp_offset=3:aq_mode=2:8x8dct=1:threads=36:lookahead-threads=4 -copyts -preset veryslow -crf 27 -f mp4 -preset veryfast'
+trans_parm2 = '-pix_fmt yuv420p -vcodec libx264 -x264opts psy=0:ref=5:keyint=300:min-keyint=300:scenecut=0:chroma_qp_offset=3:aq_mode=2:threads=36:lookahead-threads=4:aq-strength=1.20:deblock=1,-3,-3 -copyts -preset veryslow -crf 25'
+trans_parm3 = '-pix_fmt yuv420p -vcodec libx264 -x264opts psy=0:ref=5:keyint=300:min-keyint=300:scenecut=0:chroma_qp_offset=3:aq_mode=2:threads=36:lookahead-threads=4:aq-strength=1.20:deblock=1,-3,-3 -copyts -preset veryfast -crf 25'
+
 
 def store(data, save_path):
     with open(save_path, "w") as f:
@@ -45,7 +48,7 @@ def doExperiment(inputconfig_path, outputconfig_path):
 
         # --------------------------------------------
         # transcode
-        (returnCode, output.transcode_time) = transcode.transcode(input.input_path, input.input_trans_path, trans_parm)
+        (returnCode, output.transcode_time) = transcode.transcode(input.input_path, input.input_trans_path, trans_parm3)
 
         if returnCode:
             logger.g_logger.info("failed to transcode")

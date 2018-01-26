@@ -1,0 +1,54 @@
+[2018-01-26 10:37:22,771][topVideoDownload.py:275] ********* start ********
+[2018-01-26 10:37:26,657][topVideoDownload.py:276] opt=
+{'end_eposh': 0, 'vdir': None, 'start_epoch': 0, 'timepoint': 'now', 'hours': 24, 'tpl_regex': '[1,2,5,6]', 'json': '-V', 'topN': 10, 'b_downl': False, 'overwrite': True}
+[2018-01-26 10:37:26,657][topVideoDownload.py:262] search FROM 2018.01.25-10:37:27 TO 2018.01.26-10:37:26
+[2018-01-26 10:37:26,658][topVideoDownload.py:101] query_url=
+http://sla.weibo.cn/elasticsearch/_msearch
+[2018-01-26 10:37:26,658][topVideoDownload.py:102] query_data=
+{"index": ["logstash-video-2018.01.25", "logstash-video-2018.01.26"], "ignore_unavailable": true}
+{"query": {"bool": {"must_not": [], "must": [{"query_string": {"analyze_wildcard": true, "query": "programname:mweibo_client_video AND video_cache_type:(0 or 2) AND video_download_size:[1 TO 100000000] AND video_mediaid:1034* AND video_encode_mode:/template_[1,2,5,6]/"}}, {"range": {"@timestamp": {"gte": 1516847847000, "lte": 1516934246000, "format": "epoch_millis"}}}]}}, "_source": {"excludes": []}, "aggs": {"topN": {"terms": {"field": "video_mediaid", "order": {"_count": "desc"}, "size": 10}}}, "size": 0}
+
+[2018-01-26 10:37:26,659][topVideoDownload.py:113] post_topvideo_query open...
+[2018-01-26 10:45:12,278][topVideoDownload.py:275] ********* start ********
+[2018-01-26 10:45:15,571][topVideoDownload.py:276] opt=
+{'end_eposh': 0, 'vdir': None, 'start_epoch': 0, 'timepoint': 'now', 'hours': 24, 'tpl_regex': '[1,2,5,6]', 'json': '-V', 'topN': 10, 'b_downl': False, 'overwrite': True}
+[2018-01-26 10:45:15,572][topVideoDownload.py:262] search FROM 2018.01.25-10:45:16 TO 2018.01.26-10:45:15
+[2018-01-26 10:45:15,573][topVideoDownload.py:101] query_url=
+http://sla.weibo.cn/elasticsearch/_msearch
+[2018-01-26 10:45:15,573][topVideoDownload.py:102] query_data=
+{"index": ["logstash-video-2018.01.25", "logstash-video-2018.01.26"], "ignore_unavailable": true}
+{"query": {"bool": {"must_not": [], "must": [{"query_string": {"analyze_wildcard": true, "query": "programname:mweibo_client_video AND video_cache_type:(0 or 2) AND video_download_size:[1 TO 100000000] AND video_mediaid:1034* AND video_encode_mode:/template_[1,2,5,6]/"}}, {"range": {"@timestamp": {"gte": 1516848316000, "lte": 1516934715000, "format": "epoch_millis"}}}]}}, "_source": {"excludes": []}, "aggs": {"topN": {"terms": {"field": "video_mediaid", "order": {"_count": "desc"}, "size": 10}}}, "size": 0}
+
+[2018-01-26 10:45:15,574][topVideoDownload.py:113] post_topvideo_query open...
+[2018-01-26 10:50:34,795][topVideoDownload.py:275] ********* start ********
+[2018-01-26 10:50:34,797][topVideoDownload.py:276] opt=
+{'end_eposh': 0, 'vdir': None, 'start_epoch': 0, 'timepoint': 'now', 'hours': 24, 'tpl_regex': '[1,2,5,6]', 'json': '-V', 'topN': 10, 'b_downl': False, 'overwrite': True}
+[2018-01-26 10:50:34,798][topVideoDownload.py:262] search FROM 2018.01.25-10:50:35 TO 2018.01.26-10:50:34
+[2018-01-26 10:50:34,799][topVideoDownload.py:101] query_url=
+http://sla.weibo.cn/elasticsearch/_msearch
+[2018-01-26 10:50:34,799][topVideoDownload.py:102] query_data=
+{"index": ["logstash-video-2018.01.25", "logstash-video-2018.01.26"], "ignore_unavailable": true}
+{"query": {"bool": {"must_not": [], "must": [{"query_string": {"analyze_wildcard": true, "query": "programname:mweibo_client_video AND video_cache_type:(0 or 2) AND video_download_size:[1 TO 100000000] AND video_mediaid:1034* AND video_encode_mode:/template_[1,2,5,6]/"}}, {"range": {"@timestamp": {"gte": 1516848635000, "lte": 1516935034000, "format": "epoch_millis"}}}]}}, "_source": {"excludes": []}, "aggs": {"topN": {"terms": {"field": "video_mediaid", "order": {"_count": "desc"}, "size": 10}}}, "size": 0}
+
+[2018-01-26 10:55:26,033][topVideoDownload.py:275] ********* start ********
+[2018-01-26 10:55:26,035][topVideoDownload.py:276] opt=
+{'end_eposh': 0, 'vdir': None, 'start_epoch': 0, 'timepoint': 'now', 'hours': 24, 'tpl_regex': '[1,2,5,6]', 'json': '-V', 'topN': 10, 'b_downl': False, 'overwrite': True}
+[2018-01-26 10:55:26,035][topVideoDownload.py:262] search FROM 2018.01.25-10:55:27 TO 2018.01.26-10:55:26
+[2018-01-26 10:55:26,036][topVideoDownload.py:101] query_url=
+http://sla.weibo.cn/elasticsearch/_msearch
+[2018-01-26 10:55:26,036][topVideoDownload.py:102] query_data=
+{"index": ["logstash-video-2018.01.25", "logstash-video-2018.01.26"], "ignore_unavailable": true}
+{"query": {"bool": {"must_not": [], "must": [{"query_string": {"analyze_wildcard": true, "query": "programname:mweibo_client_video AND video_cache_type:(0 or 2) AND video_download_size:[1 TO 100000000] AND video_mediaid:1034* AND video_encode_mode:/template_[1,2,5,6]/"}}, {"range": {"@timestamp": {"gte": 1516848927000, "lte": 1516935326000, "format": "epoch_millis"}}}]}}, "_source": {"excludes": []}, "aggs": {"topN": {"terms": {"field": "video_mediaid", "order": {"_count": "desc"}, "size": 10}}}, "size": 0}
+
+[2018-01-26 10:56:08,712][topVideoDownload.py:113] post_topvideo_query open...
+[2018-01-26 10:58:09,432][topVideoDownload.py:275] ********* start ********
+[2018-01-26 10:58:09,433][topVideoDownload.py:276] opt=
+{'end_eposh': 0, 'vdir': None, 'start_epoch': 0, 'timepoint': 'now', 'hours': 24, 'tpl_regex': '[1,2,5,6]', 'json': '-V', 'topN': 10, 'b_downl': False, 'overwrite': True}
+[2018-01-26 10:58:09,433][topVideoDownload.py:262] search FROM 2018.01.25-10:58:10 TO 2018.01.26-10:58:09
+[2018-01-26 10:58:09,435][topVideoDownload.py:101] query_url=
+http://sla.weibo.cn/elasticsearch/_msearch
+[2018-01-26 10:58:09,435][topVideoDownload.py:102] query_data=
+{"index": ["logstash-video-2018.01.25", "logstash-video-2018.01.26"], "ignore_unavailable": true}
+{"query": {"bool": {"must_not": [], "must": [{"query_string": {"analyze_wildcard": true, "query": "programname:mweibo_client_video AND video_cache_type:(0 or 2) AND video_download_size:[1 TO 100000000] AND video_mediaid:1034* AND video_encode_mode:/template_[1,2,5,6]/"}}, {"range": {"@timestamp": {"gte": 1516849090000, "lte": 1516935489000, "format": "epoch_millis"}}}]}}, "_source": {"excludes": []}, "aggs": {"topN": {"terms": {"field": "video_mediaid", "order": {"_count": "desc"}, "size": 10}}}, "size": 0}
+
+[2018-01-26 10:58:12,495][topVideoDownload.py:113] post_topvideo_query open...
