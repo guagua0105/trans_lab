@@ -3,6 +3,7 @@ import elk_searcher
 import json
 import time
 import tool.logger as logger
+import config.elk_query_config as elk_config
 
 class ElkSearcherMediaid(elk_searcher.ElkSearcher):
 
@@ -25,8 +26,7 @@ class ElkSearcherMediaid(elk_searcher.ElkSearcher):
                     "must": [{
                         "query_string": {
                             "analyze_wildcard": True,
-                            "query": "programname:mweibo_client_video AND video_cache_type:(0 or 2) AND video_download_size:[1 TO 100000000] AND video_mediaid:1034* AND video_encode_mode:/template_{:s}/".format(
-                                opts.tpl_regex)
+                            "query": elk_config.elk_query
                         }
                     }, {
                         "range": {
@@ -47,7 +47,7 @@ class ElkSearcherMediaid(elk_searcher.ElkSearcher):
             "aggs": {
                 "topN": {
                     "terms": {
-                        "field": "video_mediaid",
+                        "field": elk_config.elk_query_field,
                         "size": int(opts.topN),
                         "order": {
                             "_count": "desc"
