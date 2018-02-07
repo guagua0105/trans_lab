@@ -5,10 +5,12 @@ import config.run_config as run_config
 import json
 import tool.logger as logger
 
-
-def transcode(input_path,output_path,trans_parm):
-    cmd_string = '%s -hide_banner -y -i %s %s %s'
-    transcode_cmd = cmd_string % (run_config.ffmpeg, input_path, trans_parm, output_path)
+# input_param：input media list; input param
+# trans_param：trans param
+# output_param：output media list; output param
+def transcode(input_param,output_param,trans_param):
+    cmd_string = '%s -hide_banner -y %s %s %s'
+    transcode_cmd = cmd_string % (run_config.ffmpeg, input_param, trans_param, output_param)
     logger.g_logger.info("start trans: %s" % transcode_cmd)
 
     start_time = time.time()
