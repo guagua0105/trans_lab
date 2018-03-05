@@ -11,9 +11,8 @@ MAX_FRAMES = 600
 
 
 class QualityWorker():
-
     @abstractmethod
-    def get_score(self, src_video, dst_video, result, src_offset=(0, 0), dst_offset=(0, 0)):
+    def get_score(self, src_video, dst_video, result, show_size, src_offset=(0, 0), dst_offset=(0, 0)):
         raise NotImplementedError
 
     def parse_vmaf(self, vmaf_result):
@@ -22,7 +21,40 @@ class QualityWorker():
         os.remove(vmaf_result)
         return vmafScore
 
-    def preprocess(self, src_video, dst_video, srcInfo, dstInfo, result, src_offset=(0, 0), dst_offset=(0, 0)):
+    def calc_scaler(self, show_size, srcWidth, srcHeight, dstWidth, dstHeight):
+        src_scaler = ""
+        dst_scaler = ""
+        short_dstName = ""
+        if show_size.width > 0:
+            # src file scale to show size
+            if srcWidth <= show_size.width:  # upsample:cubic
+                src_scaler = "-vf scale=%d:%d" % (show_size.width, show_size.height)
+                short_dstName = "%dx%dd" % (show_size.width, show_size.height)
+            else:
+                src_scaler = "-vf scale=%d:%d:flags=gauss" % (show_size.width, show_size.height)
+                short_dstName = ".%dx%du" % (show_size.width, show_size.height)
+            # dst file scale to show size
+            if dstWidth <= show_size.width:  # upsample:cubic
+                dst_scaler = "-vf scale=%d:%d" % (show_size.width, show_size.height)
+                short_dstName = "%dx%dd" % (show_size.width, show_size.height)
+            else:
+                dst_scaler = "-vf scale=%d:%d:flags=gauss" % (show_size.width, show_size.height)
+                short_dstName = ".%dx%du" % (show_size.width, show_size.height)
+        else:
+            # scale to src size
+            if srcWidth != dstWidth or srcHeight != dstHeight:
+                # to src size
+                if srcWidth <= dstWidth:  # upsample:cubic
+                    dst_scaler = "-vf scale=%d:%d" % (srcWidth, srcHeight)
+                    short_dstName = "%dx%dd" % (srcWidth, srcHeight)
+                else:
+                    dst_scaler = "-vf scale=%d:%d:flags=gauss" % (srcWidth, srcHeight)
+                    short_dstName = ".%dx%du" % (srcWidth, srcHeight)
+
+        return (src_scaler, dst_scaler, short_dstName)
+
+
+    def preprocess(self, src_video, dst_video, srcInfo, dstInfo, show_size, src_offset=(0, 0), dst_offset=(0, 0)):
 
         ## set the decode frame number
         srcFrames = srcInfo.get(u'nb_frames', 0)  # convert to int
@@ -52,21 +84,12 @@ class QualityWorker():
         dstHeight = dstInfo.get(u'height', 0)
         print srcWidth, srcHeight, dstWidth, dstHeight
 
-        scaler = ""
-        if srcWidth != dstWidth or srcHeight != dstHeight:
-            # to src size
-            if srcWidth <= dstWidth:  # upsample:cubic
-                scaler = "-vf scale=%d:%d" % (srcWidth, srcHeight)
-                dstName += "%dx%dd" % (srcWidth, srcHeight)
-            else:
-                scaler = "-vf scale=%d:%d:flags=gauss" % (srcWidth, srcHeight)
-                dstName += ".%dx%du" % (srcWidth, srcHeight)
-
+        (src_scaler, dst_scaler, short_dstName) = self.calc_scaler(show_size, srcWidth, srcHeight, dstWidth, dstHeight)
         srcYuv = srcName + '.yuv'
-        dstYuv = dstName + '.yuv'
-        if self.decode(src_video, srcYuv, "", True, decodeFrames):
+        dstYuv = dstName + short_dstName + '.yuv'
+        if self.decode(src_video, srcYuv, src_scaler, True, decodeFrames):
             return (False, None, None, 0, 0)
-        if self.decode(dst_video, dstYuv, scaler, True, decodeFrames):
+        if self.decode(dst_video, dstYuv, dst_scaler, True, decodeFrames):
             return (False, None, None, 0, 0)
 
         # offset yuv    (normally useless)
@@ -127,7 +150,7 @@ class VMAFQualityWorker(QualityWorker):
         (returnCode, output) = sys_execute.execute(vmafCmd)
         return returnCode
 
-    def get_score(self, src_video, dst_video, srcInfo, dstInfo, result, src_offset=(0, 0), dst_offset=(0, 0)):
+    def get_score(self, src_video, dst_video, srcInfo, dstInfo, result, show_size, src_offset=(0, 0), dst_offset=(0, 0)):
         '''
         :param src_video:
         :param dst_video:
@@ -137,7 +160,7 @@ class VMAFQualityWorker(QualityWorker):
         :return:
         '''
 
-        (returnValue, srcYuv, dstYuv, srcWidth, srcHeight)= self.preprocess(src_video, dst_video, srcInfo, dstInfo, result, src_offset, dst_offset)
+        (returnValue, srcYuv, dstYuv, srcWidth, srcHeight)= self.preprocess(src_video, dst_video, srcInfo, dstInfo, show_size, src_offset, dst_offset)
         if returnValue == False:
             logger.g_logger.error("Failed to process")
             return -1
