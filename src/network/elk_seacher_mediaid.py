@@ -80,8 +80,8 @@ class ElkSearcherMediaid(elk_searcher.ElkSearcher):
             ret_dict["query_time"] = "{:s} ~ {:}".format(opts.start_time, opts.end_time)
             ret_dict["query_index"] = opts.query_index
             ret_dict["query_data"] = opts.query_data
-            with open(opts.json, "wb") as f:
-                json.dump(ret_dict, f, indent=4)
+            #with open(opts.json, "wb") as f:
+                #json.dump(ret_dict, f, indent=4)
             logger.g_logger.info("save resopnse data in " + opts.json)
         responses = ret_dict['responses']
         buckets = responses[0]['aggregations']['topN']['buckets']

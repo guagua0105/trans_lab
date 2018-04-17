@@ -9,6 +9,7 @@ class BaseInput:
         self.input_path = ''
         self.input_trans_path = ''
         self.vmaf_result_path = ''
+        self.input_bitrate = -1
         self.score_mode = basedefine.SCORE_VMAF
 
 

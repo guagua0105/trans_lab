@@ -9,7 +9,7 @@ from abc import abstractmethod
 
 MAX_FRAMES = 600
 
-
+# -pix_fmt yuv420p -color_range 2 -vf scale=out_color_matrix=bt709,scale=out_range=full -colorspace 1
 class QualityWorker():
     @abstractmethod
     def get_score(self, src_video, dst_video, result, show_size, src_offset=(0, 0), dst_offset=(0, 0)):
@@ -28,27 +28,27 @@ class QualityWorker():
         if show_size.width > 0:
             # src file scale to show size
             if srcWidth <= show_size.width:  # upsample:cubic
-                src_scaler = "-vf scale=%d:%d" % (show_size.width, show_size.height)
+                src_scaler = "-pix_fmt yuv420p -vf scale=%d:%d" % (show_size.width, show_size.height)
                 short_dstName = "%dx%dd" % (show_size.width, show_size.height)
             else:
-                src_scaler = "-vf scale=%d:%d:flags=gauss" % (show_size.width, show_size.height)
+                src_scaler = "-pix_fmt yuv420p -vf scale=%d:%d:flags=gauss" % (show_size.width, show_size.height)
                 short_dstName = ".%dx%du" % (show_size.width, show_size.height)
             # dst file scale to show size
             if dstWidth <= show_size.width:  # upsample:cubic
-                dst_scaler = "-vf scale=%d:%d" % (show_size.width, show_size.height)
+                dst_scaler = "-pix_fmt yuv420p -vf scale=%d:%d" % (show_size.width, show_size.height)
                 short_dstName = "%dx%dd" % (show_size.width, show_size.height)
             else:
-                dst_scaler = "-vf scale=%d:%d:flags=gauss" % (show_size.width, show_size.height)
+                dst_scaler = "-pix_fmt yuv420p -vf scale=%d:%d:flags=gauss" % (show_size.width, show_size.height)
                 short_dstName = ".%dx%du" % (show_size.width, show_size.height)
         else:
             # scale to src size
             if srcWidth != dstWidth or srcHeight != dstHeight:
                 # to src size
                 if srcWidth <= dstWidth:  # upsample:cubic
-                    dst_scaler = "-vf scale=%d:%d" % (srcWidth, srcHeight)
+                    dst_scaler = "-pix_fmt yuv420p -vf scale=%d:%d" % (srcWidth, srcHeight)
                     short_dstName = "%dx%dd" % (srcWidth, srcHeight)
                 else:
-                    dst_scaler = "-vf scale=%d:%d:flags=gauss" % (srcWidth, srcHeight)
+                    dst_scaler = "-pix_fmt yuv420p -vf scale=%d:%d:flags=gauss" % (srcWidth, srcHeight)
                     short_dstName = ".%dx%du" % (srcWidth, srcHeight)
 
         return (src_scaler, dst_scaler, short_dstName)

@@ -1,13 +1,22 @@
 {
-
 	"0": {
-		"input_path": "/Users/yangle/Work/weibo/github/Transcodec/script/python/vmaf/gif_test/1.gif",
-		"trans_file_path": "/Users/yangle/Work/weibo/github/Transcodec/script/python/vmaf/gif_test/fast/1_gif.mp4",
-		"vmaf_result_path": "/Users/yangle/Work/weibo/github/Transcodec/script/python/vmaf/gif_test/1_gif_result.txt"
+		"input_path": "/Volumes/Passport/y4m_video/crowd_run_1080p50.y4m",
+		"trans_file_path": "/Users/yangle/Work/github/trans_codec/key_test/test1.mp4",
+		"vmaf_result_path": "/Users/yangle/Work/github/trans_codec/key_test/test1_result.txt"
 	},
 	"1": {
-		"input_path": "/Users/yangle/Work/weibo/github/Transcodec/script/python/vmaf/gif_test/2.gif",
-		"trans_file_path": "/Users/yangle/Work/weibo/github/Transcodec/script/python/vmaf/gif_test/fast/2_gif.mp4",
-		"vmaf_result_path": "/Users/yangle/Work/weibo/github/Transcodec/script/python/vmaf/gif_test/2_gif_result.txt"
+		"input_path": "/Volumes/Passport/y4m_video/Johnny_1280x720_60.y4m",
+		"trans_file_path": "/Users/yangle/Work/github/trans_codec/key_test/test2.mp4",
+		"vmaf_result_path": "/Users/yangle/Work/github/trans_codec/key_test/test2_result.txt"
+	},
+	"2": {
+		"input_path": "/Volumes/Passport/y4m_video/pedestrian_area_1080p25.y4m",
+		"trans_file_path": "/Users/yangle/Work/github/trans_codec/key_test/test3.mp4",
+		"vmaf_result_path": "/Users/yangle/Work/github/trans_codec/key_test/test3_result.txt"
+	},
+	"3": {
+		"input_path": "/Volumes/Passport/y4m_video/riverbed_1080p25.y4m",
+		"trans_file_path": "/Users/yangle/Work/github/trans_codec/key_test/test4.mp4",
+		"vmaf_result_path": "/Users/yangle/Work/github/trans_codec/key_test/test4_result.txt"
 	}
 }

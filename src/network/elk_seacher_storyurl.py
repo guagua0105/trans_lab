@@ -26,7 +26,7 @@ class ElkSearcherStoryUrl(elk_searcher.ElkSearcher):
                     "must": [{
                         "query_string": {
                             "analyze_wildcard": True,
-                            "query": elk_config.elk_query
+                            "query": elk_config.elk_story_query
                         }
                     }, {
                         "range": {
@@ -47,7 +47,7 @@ class ElkSearcherStoryUrl(elk_searcher.ElkSearcher):
             "aggs": {
                 "topN": {
                     "terms": {
-                        "field": elk_config.elk_query_field,
+                        "field": elk_config.elk_story_query_field,
                         "size": int(opts.topN),
                         "order": {
                             "_count": "desc"

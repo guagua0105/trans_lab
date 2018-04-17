@@ -1,29 +1,19 @@
-# !/usr/bin/python
-# -*- coding: utf-8 -*-
-
-import os
-import config.run_config as run_config
-import sys
-
-import time
-import subprocess
+# -*- coding: UTF-8 -*-
+import os, sys
+import json
 import tool.logger as logger
-import elk_seacher_storyurl
-import urllib2
+import time
+import src.network.elk_seacher_mediaid as elk_seacher_mediaid
+import src.network.video_downloader as video_downloader
+import src.define.output as outputStruct
+import config.run_config as run_config
+import tool.sys_execute as sys_execute
 
-module_name = "worker.thaibum_download"
+module_name = "worker.time_compare"
 
-def checkoutput(output, b_overwrite):
-    if os.path.isfile(output):
-        if not b_overwrite:
-            print ("already exist")
-            return 1
-        else:
-            print ("would be overwrite")
-    return 0
-
-def _create_module_log():
-    return logger.log2stdout(module_name)
+def store(data, save_path):
+    with open(save_path, "w") as f:
+        json.dump(data, fp=f, indent=4)
 
 def main_parser():
     from optparse import OptionParser
@@ -38,6 +28,7 @@ def main_parser():
     parser.add_option("--end-epoch", dest="end_eposh", type=float, default=0, help=r"end eposh.")
     parser.add_option("--tpl", dest="tpl_regex", default='[1,2,5,6]', help=r"template regex")
     parser.add_option("--downl", dest="b_downl", action="store_true", default=False, help="whether download videos")
+    parser.add_option("-o", dest="output_info", default=None, help="whether download videos")
     return parser
 
 def main_check(opt):
@@ -65,40 +56,8 @@ def main_check(opt):
     opt.json = "{:s}-{:d}.[{:s}].json".format(opt.json, opt.topN, time.strftime('%Y.%m.%d-%H', time.localtime(opt.end_epoch)))
     return 0
 
-def video_download(ssig_url, thumbnail,seek_pos = '00:00:03'):
-    print ("seek_pos =")
-    if not seek_pos:
-        return 1
-
-    cmd= ["%s -y -threads 0" % run_config.ffmpeg]
-    cmd.append('-i \"%s\"' % ssig_url)
-    cmd.append('-ss %s' % seek_pos)
-    cmd.append('-vframes 1')
-    cmd.append('%s' % thumbnail)       
-    processcmd = ' '.join(cmd)
-    print ("ffmpeg cmd =")
-    process = subprocess.Popen(processcmd,shell=True)
-    process.wait()
-
-    return 0
-
-def video_download2(ssig_url, path_prefix, file_name):
-
-    opath = path_prefix + "/" + file_name + ".mp4"
-    logger.g_logger.info("save_path = " + opath)
-
-    # 下载视频
-
-    try:
-        link = urllib2.urlopen(ssig_url)
-        with open(opath, 'wb') as f:
-            f.write(link.read())
-        link.close()
-        logger.g_logger.info("download finished")
-    except Exception as e:
-        logger.g_logger.error("Exception e = %s", e);
-        return (-3, None)
-    return (0, opath)
+def _create_module_log():
+    return logger.log2stdout(module_name)
 
 if __name__ == "__main__":
     reload(sys)
@@ -112,11 +71,47 @@ if __name__ == "__main__":
     logger.g_logger.info("opt=\n"+str(opt))
     if main_check(opt):
         exit(1)
-    elkSearcherStoryUrl = elk_seacher_storyurl.ElkSearcherStoryUrl()
-    buckets = elkSearcherStoryUrl.get_search_result(opt)
+    elkSearcherMediaid = elk_seacher_mediaid.ElkSearcherMediaid()
+    videoDownloader = video_downloader.VideoDownloader()
+    buckets = elkSearcherMediaid.get_search_result(opt)
 
-    count = 1
-    for bkt in buckets:
-        tmp = "file%d" % count
-        video_download2(bkt["key"], opt.vdir, tmp)
-        count = count + 1
+    BaseOutputArray = outputStruct.BaseOutputArray()
+    if opt.b_downl:
+        for bkt in buckets:
+            (res, outputFile) = videoDownloader.videoDownload(bkt["key"], odir=opt.vdir, b_overwrite=opt.overwrite)
+            if res != 0:
+                logger.g_logger.info("failed download file id="+bkt["key"])
+                continue
+            output = outputStruct.BaseOutput()
+            output.output_path = outputFile
+
+            cmd_string = '%s -show_frames -print_format json %s'
+            transcode_cmd = cmd_string % (run_config.ffprobe, outputFile)
+            logger.g_logger.info("start exec: %s" % transcode_cmd)
+
+            start_time = time.time()
+            (returnCode, outputInfo) = sys_execute.execute(transcode_cmd)
+            if returnCode:
+                logger.g_logger.error("failed trans")
+                continue
+            end_time = time.time()
+            output.transcode_time = end_time-start_time
+
+            cmd_string = '%s -show_resolutions -print_format json %s'
+            transcode_cmd = cmd_string % (run_config.media_verify, outputFile)
+            logger.g_logger.info("start exec: %s" % transcode_cmd)
+
+            start_time = time.time()
+            (returnCode, outputInfo) = sys_execute.execute(transcode_cmd)
+            if returnCode:
+                logger.g_logger.error("failed trans")
+                continue
+            end_time = time.time()
+            output.referrence_time = end_time-start_time
+
+            os.remove(outputFile)
+            BaseOutputArray.append(output)
+
+        logger.g_logger.info("all done. save to %s *************************************" % opt.output_info)
+        outputDict = BaseOutputArray.convert2json()
+        store(outputDict, opt.output_info)

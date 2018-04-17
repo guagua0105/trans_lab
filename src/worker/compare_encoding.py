@@ -10,7 +10,7 @@ import src.define.basedefine as basedefine
 module_name = "worker.compare_encoding"
 
 crf_trans_parm = "-dn -metadata:s rotate= -vcodec libx264 -crf %d -preset veryslow -movflags faststart -x264opts psy=0:ref=5:keyint=90:min-keyint=9:chroma_qp_offset=0:aq_mode=2:threads=36:lookahead-threads=4 -maxrate 2500k -bufsize 5M"
-crf_trans_parm2 = "-dn -metadata:s rotate= -vcodec libx264 -crf %d -preset veryslow -movflags faststart -x264opts psy=0:ref=5:keyint=90:min-keyint=9:chroma_qp_offset=0:aq_mode=2:aq-strength=2:threads=36:lookahead-threads=4 -maxrate 2500k -bufsize 5M"
+crf_trans_parm2 = "-dn -metadata:s rotate= -vcodec libx264 -crf %d -preset veryslow -movflags faststart -x264opts psy=0:ref=5:keyint=90:min-keyint=9:chroma_qp_offset=0:aq_mode=2:threads=36:lookahead-threads=4 -maxrate 2200k -bufsize 10M"
 
 #  -maxrate %dk -bufsize 20M
 def store(data, save_path):

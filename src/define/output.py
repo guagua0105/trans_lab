@@ -9,12 +9,14 @@ class BaseOutput:
         self.transcode_time = -1
         self.score = -1
         self.output_bitrate = -1
+        self.index = -1
+        self.output_path = ''
 
 
 class BaseOutputArray:
     def __init__(self):
         self._n = 0
-        self._capacity = 20
+        self._capacity = 100
         self._A = self._make_array(self._capacity)  # low-level array
 
     def __len__(self):

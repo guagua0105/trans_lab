@@ -1,0 +1,23 @@
+{
+	"baseMediaParams": [
+		{
+			"stream_select": "/Volumes/Passport/y4m_video/crowd_run_1080p50.y4m",
+			"vencoder_params": "/Users/yangle/Work/github/trans_codec/key_test/test1.mp4",
+			"vfilter_params": "/Users/yangle/Work/github/trans_codec/key_test/test1_result.txt",
+			"format_params": "/Users/yangle/Work/github/trans_codec/key_test/test1_result.txt",
+			"aencoder_params": "/Users/yangle/Work/github/trans_codec/key_test/test1_result.txt"
+		},
+	],
+	"baseVideoBitrates":[
+		{
+			"rc_mode": 1,
+			"output_bitrate": 0,
+			"crf": 25
+		},
+		{
+			"rc_mode": 2,
+			"output_bitrate": 0,
+			"crf": 25
+		}
+	]
+}

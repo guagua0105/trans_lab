@@ -10,8 +10,8 @@ import src.define.basedefine as basedefine
 module_name = "worker.multipass_encoding"
 
 crf_trans_parm = "-dn -metadata:s rotate= -vcodec libx264 -crf %d -preset veryslow -movflags faststart -x264opts psy=0:ref=5:keyint=90:min-keyint=9:chroma_qp_offset=0:aq_mode=2:threads=36:lookahead-threads=4 -maxrate 2500k -bufsize 5M"
-multipas1_trans_parm = "-dn -metadata:s rotate= -vcodec libx264 -b:v %dk -pass 1 -preset veryslow -movflags faststart -x264opts psy=0:ref=5:keyint=90:min-keyint=60:chroma_qp_offset=0:aq_mode=2:threads=36:lookahead-threads=4 -maxrate %dk -bufsize 20M -f mp4"
-multipas2_trans_parm = "-dn -metadata:s rotate= -vcodec libx264 -b:v %dk -pass 2 -preset veryslow -movflags faststart -x264opts psy=0:ref=5:keyint=90:min-keyint=60:chroma_qp_offset=0:aq_mode=2:threads=36:lookahead-threads=4 -maxrate %dk -bufsize 20M -f mp4"
+multipas1_trans_parm = "-dn -metadata:s rotate= -vcodec libx264 -b:v %dk -pass 1 -preset veryslow -movflags faststart -x264opts psy=0:ref=5:keyint=90:min-keyint=60:chroma_qp_offset=0:aq_mode=2:threads=36:lookahead-threads=4 -f mp4"
+multipas2_trans_parm = "-dn -metadata:s rotate= -vcodec libx264 -b:v %dk -pass 2 -preset veryslow -movflags faststart -x264opts psy=0:ref=5:keyint=90:min-keyint=60:chroma_qp_offset=0:aq_mode=2:threads=36:lookahead-threads=4 -f mp4"
 
 #  -maxrate %dk -bufsize 20M
 def store(data, save_path):
@@ -85,8 +85,8 @@ def doExperiment(inputconfig_path, outputconfig_path):
             # ---------------------------------------------
             # two pass encoding
             vbv_max_bitrate = float(crf_output_bitrate) * 1.1
-            video_trans_parm = multipas1_trans_parm % (int(crf_output_bitrate), int(vbv_max_bitrate))
-            #video_trans_parm = multipas1_trans_parm % (int(crf_output_bitrate))
+            #video_trans_parm = multipas1_trans_parm % (int(crf_output_bitrate), int(vbv_max_bitrate))
+            video_trans_parm = multipas1_trans_parm % (int(crf_output_bitrate))
             output_param = "/dev/null"
             (returnCode, crf_transcode_time) = transcode.transcode(input_param, output_param, video_trans_parm)
 
@@ -94,8 +94,8 @@ def doExperiment(inputconfig_path, outputconfig_path):
                 logger.g_logger.info("failed to transcode")
                 return
 
-            video_trans_parm = multipas2_trans_parm % (int(crf_output_bitrate), int(vbv_max_bitrate))
-            #video_trans_parm = multipas2_trans_parm % (int(crf_output_bitrate))
+            #video_trans_parm = multipas2_trans_parm % (int(crf_output_bitrate), int(vbv_max_bitrate))
+            video_trans_parm = multipas2_trans_parm % (int(crf_output_bitrate))
             (returnCode, crf_transcode_time) = transcode.transcode(input_param, input.input_trans_path, video_trans_parm)
 
             if returnCode:
