@@ -18,8 +18,9 @@ Brief
     set external tools like ffmpeg, ffprobe, vmaf here
 """
 
-ffmpeg = "/Users/yangle/Work/github/trans_codec/source/weibo-ffmpeg/target/bin/ffmpeg"
-ffprobe = "/Users/yangle/Work/github/trans_codec/source/weibo-ffmpeg/target/bin/ffprobe"
+ffmpeg = "/usr/local/bin/ffmpeg"
+ffprobe = "/Users/yangle/Work/github/trans_codec/key_test/ffprobe"
+media_verify = "/Users/yangle/Work/github/trans_codec/source/weibo-ffmpeg/ffmpeg3.1/media_verify"
 run_vmaf = "/Users/yangle/Work/github/trans_codec/video_quality/vmaf/vmaf/run_vmaf"
 run_vmaf_py = "/Users/yangle/Work/github/trans_codec/video_quality/vmaf/vmaf/python/script/run_vmaf.py"
 font_msyh = "/Users/yangle/Work/config/msyh.ttf"
