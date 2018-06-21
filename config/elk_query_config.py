@@ -11,5 +11,5 @@
 # elk_query_field = "video_url"
 
 elk_query_index = "logstash-mweibo-"
-elk_query = "programname:weibo_video_trans AND _exists_: delogo_result_code AND error_code: 600"
+elk_query = "programname:weibo_video_trans AND (job_type:TRANS_STORY OR job_type:TRANS_VIDEO_SLOW) AND error_code:600 AND _exists_:delogo_result_code"
 elk_query_field = "output_url"

@@ -116,4 +116,4 @@ class ElkSearcherMediaid(elk_searcher.ElkSearcher):
         logger.g_logger.info("return top-{N:d} {top_count:d}/{all_count:d}={pecent:.2f}%".format(
             N=len(buckets), top_count=top_count, all_count=all_count,
             pecent=top_count * 100 / all_count))
-        return buckets
+        return buckets, jsonPath

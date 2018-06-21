@@ -1,17 +1,18 @@
 # -*- coding: UTF-8 -*-
-import elk_searcher2
 import json
 import os
 import time
-import tool.logger as logger
+
 import config.elk_query_config_single_log_query as elk_config
+import src.watermark.data.elk_searcher2
+import tool.logger as logger
 
 
-class ElkSearcherQuerySingleLog(elk_searcher2.ElkSearcher2):
+class ElkSearcherQuerySingleLog(src.watermark.data.elk_searcher2.ElkSearcher2):
 
     def generate_query_json(self, opts):
-        start_date = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(opts.start_epoch))
-        end_date = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(opts.end_epoch))
+        start_date = time.strftime('%Y-%m-%d-%H-%M', time.localtime(opts.start_epoch))
+        end_date = time.strftime('%Y-%m-%d-%H-%M', time.localtime(opts.end_epoch))
 
         if not opts.elk_query_index == '':
             elk_config.elk_query_index = opts.elk_query_index.lstrip()
@@ -27,7 +28,7 @@ class ElkSearcherQuerySingleLog(elk_searcher2.ElkSearcher2):
 
         time_stamp = ''
         if end_date != start_date:
-            time_stamp = end_date + "~" + end_date
+            time_stamp = start_date + "~" + end_date
         else:
             time_stamp = "now-1d"
 
@@ -39,7 +40,7 @@ class ElkSearcherQuerySingleLog(elk_searcher2.ElkSearcher2):
             },
             "indexName": elk_config.elk_query_index,
             "timeFormat": "day",
-            "timestamp": "now-1d",
+            "timestamp": time_stamp,
             "isDetail": "yes"
         }
 

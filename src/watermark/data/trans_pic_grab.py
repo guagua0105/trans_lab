@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
-import file_opr
-import os
+import src.watermark.data.file_opr
+import os, sys
 import shutil
 import config.run_config as run_config
 import subprocess
@@ -8,6 +8,22 @@ import shlex
 import json
 import requests
 import datetime
+import tool.logger as logger
+import src.watermark.detection.videoProcess as videoProcess
+import numpy as np
+
+module_name = "src.watermark.data.trans_pic_grab."
+
+def _create_module_log():
+    return logger.log2stdout(module_name)
+
+def main_parser():
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option("-i", "--inputlogpath", dest="inputlogpath", default=None, help=r"input log path")
+    parser.add_option("-o", "--outputpath", dest="outputpath", default=None, help=r"out log path")
+    return parser
+
 def get_oid(log):
     hits = None
     source = None
@@ -32,7 +48,7 @@ def get_input_url(log):
                     return source["input_url"]
 
 def get_input_url_from_logfile(path):
-    log = file_opr.loadJson3(path)
+    log = src.watermark.data.file_opr.loadJson3(path)
     hits = None
     source = None
     if log.has_key("hits"):
@@ -55,7 +71,7 @@ def get_delogo_info(log):
                     return (source["delogo_result_code"], source["delogo_result_msg"],source["delogo_result_data"])
 
 def get_delogo_info_from_logfile(path):
-    log = file_opr.loadJson3(path)
+    log = src.watermark.data.file_opr.loadJson3(path)
     hits = None
     source = None
     if log.has_key("hits"):
@@ -72,7 +88,7 @@ def get_unique_log(log_output_path, unique_log_output_path, max_log_num=None, su
     if not os.path.exists(unique_log_output_path):
         os.mkdir(unique_log_output_path)
 
-    fps, fns = file_opr.eachFile(log_output_path, '.json')
+    fps, fns = src.watermark.data.file_opr.eachFile(log_output_path, '.json')
 
     unique_source_video_dic = {}
     id =0
@@ -81,7 +97,7 @@ def get_unique_log(log_output_path, unique_log_output_path, max_log_num=None, su
         if max_log_num and id > max_log_num:
             break
 
-        log = file_opr.loadJson3(f)
+        log = src.watermark.data.file_opr.loadJson3(f)
         oid = get_oid(log)
         print oid
         if oid:
@@ -145,7 +161,7 @@ def execProgram(cmdargs):
         return None
 
     try:
-        buf = subprocess.check_output(cmdargs)  ####确认是否为block型的操作
+        buf = subprocess.check_output(cmdargs,stderr=subprocess.STDOUT)  ####确认是否为block型的操作
     except subprocess.CalledProcessError as e:
         return None
 
@@ -156,7 +172,7 @@ def execProgram(cmdargs):
     return output
 
 def findVideoMetada(pathToInputVideo):
-    cmd = "ffprobe -v quiet -print_format json -show_streams"
+    cmd = run_config.ffprobe + " -v quiet -print_format json -show_streams"
     args = shlex.split(cmd)
     args.append(pathToInputVideo)
     return execProgram(args)
@@ -198,7 +214,7 @@ def downloadFile(url, local_path):
         code.write(r.content)
 
 def grabVideoPic(input_log_json_path, output_path, sample_num=1, sub_folder=False, file_mode=None):
-    log = file_opr.loadJson3(input_log_json_path)
+    log = src.watermark.data.file_opr.loadJson3(input_log_json_path)
     oid = get_oid(log)
     input_url = get_input_url(log)
     print input_url
@@ -279,7 +295,7 @@ def grabVideoPics(log_path, output_path, max_log_num=None, sample_num=1, sub_fol
         os.mkdir(output_path)
 
 
-    fps, fns = file_opr.eachFile(log_path, ".json")
+    fps, fns = src.watermark.data.file_opr.eachFile(log_path, ".json")
 
     file_num = 0
     front_pic = 0
@@ -296,7 +312,7 @@ def grabVideoPics(log_path, output_path, max_log_num=None, sample_num=1, sub_fol
         json_fullpath = fp
         print "current log path:", json_fullpath
 
-        log = file_opr.loadJson3(json_fullpath)
+        log = src.watermark.data.file_opr.loadJson3(json_fullpath)
         oid = get_oid(log)
         input_url = get_input_url(log)
         print "input url:", input_url
@@ -385,6 +401,112 @@ def grabVideoPics(log_path, output_path, max_log_num=None, sample_num=1, sub_fol
         print file_num, front_pic, back_pic
         print "-------------------------------------------"
 
+def grabVideoPics2(log_path, output_path, max_log_num=None, sample_num=1, sub_folder=False, file_mode=None):
+
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
+
+
+    fps, fns = src.watermark.data.file_opr.eachFile(log_path, ".json")
+
+    file_num = 0
+    front_pic = 0
+    back_pic = 0
+
+    start_flag = False
+    for fp in fps:
+        print fp
+
+        file_num = file_num + 1
+        if max_log_num and file_num > max_log_num:
+            break
+
+        json_fullpath = fp
+        print "current log path:", json_fullpath
+
+        log = src.watermark.data.file_opr.loadJson3(json_fullpath)
+        oid = get_oid(log)
+        input_url = get_input_url(log)
+        print "input url:", input_url
+
+        # 添加防盗链
+        input_url = updataUrl(input_url)
+        print "updated url: ", input_url
+
+        #get video duraion
+        video_metadata = findVideoMetada(input_url)
+        if not video_metadata:
+            print "find video metadata fail"
+            continue
+
+        if not video_metadata.has_key("streams"):
+            print "video meta parse error"
+            continue
+
+        video_stream = None
+        for stream in video_metadata["streams"]:
+            if stream.has_key("codec_type"):
+                if stream["codec_type"] == "video":
+                    video_stream = stream
+                    break
+
+        if not video_stream:
+            print "no video stream"
+            continue
+
+        print video_stream
+        dur = None
+        if video_stream.has_key("duration"):
+            dur = video_stream["duration"]
+        else:
+            print "duration parse error"
+            continue
+
+        if not dur:
+            print "duration parse error"
+            continue
+
+        if dur == "":
+            print "duration parse error"
+            continue
+
+        if float(dur) < 0:
+            print "duration is negative"
+            continue
+        dur = float(dur)
+
+        # create file name
+        output_file_path_f = output_path
+        if sub_folder:
+            output_file_path = output_path + oid + "/"
+            if output_file_path:
+                if not os.path.exists(output_file_path):
+                    os.mkdir(output_file_path)
+
+            output_file_path_f = output_path + oid + "/" + oid
+        else:
+            output_file_path_f = output_path + oid
+
+        print "pic output path:",output_file_path_f
+
+        # grab the pic
+        grabImages(input_url,3,output_file_path_f,dur,3)
+        print "-------------------------------------------"
+
+def grabImages(videoFileName, grabedImageNum, imageIntermediatePath, dur, sample_num, size=None):
+    sampled_count = grabedImageNum
+    maxDur = dur - 1
+    if dur < 2:
+        maxDur = dur
+
+    sampledPos = np.arange(0, dur-1, float(dur)/grabedImageNum, dtype=float)
+
+    id = 0
+    for pos in sampledPos:
+        seek_pos = videoProcess.second2hms(pos)
+        videoProcess.grapImages(videoFileName, seek_pos, sample_num, imageIntermediatePath, "_{}_%d.jpg".format(id), size)
+        id = id + 1
+
 
 def get_unique_log_and_grab_pics(log_output_path, unique_log_output_path, max_log_num=None):
     unique_logs = unique_log_output_path
@@ -397,16 +519,17 @@ def get_unique_log_and_grab_pics(log_output_path, unique_log_output_path, max_lo
     grabVideoPics(unique_logs, unique_logs, max_log_num)
 
 if __name__ == "__main__":
-    log_output_path = "/Users/liuwen/Development/test/trans_lab/output/"
-    unique_logs = unique_log_output_path = "/Users/liuwen/Development/test/trans_lab/unique_output1000_1/"
-    # get_unique_log_and_grab_pics(log_output_path, unique_log_output_path)
+    reload(sys)
+    sys.setdefaultencoding('utf-8')     # <! 中文设置
+    logger.g_logger = _create_module_log()
 
-    # single_log_folder_path = "/Users/liuwen/Development/test/trans_lab/unique_output1000_1/"
-    # single_log_full_path = "/Users/liuwen/Development/test/trans_lab/unique_output1000_1/4230239213544025.json"
-    # single_log_full_path = "/Users/liuwen/Development/test/trans_lab/unique_output1000_1//4230225032084895.json"
-    # grabVideoPic(single_log_full_path, single_log_full_path, 1, True, "%d.jpg")
+    #get opt
+    parser = main_parser()
+    (opt, args) = parser.parse_args()
+    logger.g_logger.info("********* start ********")
 
-    grabVideoPics(unique_logs, unique_logs, 1000, 10, True, "%d.jpg")
+    # 根据日志开始截图
+    grabVideoPics2(opt.inputlogpath, opt.outputpath, 4995, 3, True, "%d.jpg")
 
 
 

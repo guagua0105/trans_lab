@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
-import os, sys
-import json
-import tool.logger as logger
+import os
+import sys
 import time
-import elk_searcher_query_single_log
+
+import src.watermark.data.elk_searcher_query_single_log
+import tool.logger as logger
 
 module_name = "worker.test_top_video_downloader"
 
@@ -13,7 +14,7 @@ def main_parser():
     parser.add_option("-j", "--json", dest="json", default="log", help=r"json saved path")
     parser.add_option("--hours", dest="hours", type=int, default=24, help=r"search in how many hours")
     parser.add_option("-f", "--overwrite", dest="overwrite", action="store_true", default=True, help=r"force overwrite existing file")
-    parser.add_option("-p", "--point", dest="timepoint", default="now", help=r"now, yesterday, or time in '%Y.%m.%d-%H' format")
+    parser.add_option("-p", "--point", dest="timepoint", default="yesterday", help=r"now, yesterday, or time in '%Y.%m.%d-%H' format")
     parser.add_option("--start-epoch", dest="start_epoch", type=float, default=0, help=r"start eposh.")
     parser.add_option("--end-epoch", dest="end_eposh", type=float, default=0, help=r"end eposh.")
     parser.add_option("-o", "--outputdir", dest="outputdir", default=None, help=r"output json save dir")
@@ -63,7 +64,7 @@ if __name__ == "__main__":
     logger.g_logger.info("opt=\n"+str(opt))
     if main_check(opt):
         exit(1)
-    elkSearcherMediaid = elk_searcher_query_single_log.ElkSearcherQuerySingleLog()
+    elkSearcherMediaid = src.watermark.data.elk_searcher_query_single_log.ElkSearcherQuerySingleLog()
     buckets = elkSearcherMediaid.get_search_result(opt)
 
 

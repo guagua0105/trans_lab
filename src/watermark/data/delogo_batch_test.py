@@ -1,5 +1,9 @@
-import file_opr
+from src.watermark.data import file_opr
 from sklearn.metrics import precision_recall_fscore_support as score
+from sklearn.metrics import precision_recall_fscore_support as score
+
+from src.watermark.data import file_opr
+
 
 def demo():
     predicted = [1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0]
