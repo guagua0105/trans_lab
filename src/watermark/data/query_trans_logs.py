@@ -1,19 +1,25 @@
 # -*- coding: UTF-8 -*-
-import os, sys
+import subprocess
 import json
+import os
+import config.elk_query_config_single_log_query as elk_config
+import src.watermark.data.file_opr
 import tool.logger as logger
 import time
-import elk_seacher_mediaid
-import video_downloader
+import os, sys
+import src.network.elk_seacher_mediaid
 
-module_name = "worker.test_top_video_downloader"
+module_name = "network.query_trans_logs"
+
+def _create_module_log():
+    return logger.log2stdout(module_name)
 
 def main_parser():
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option("-n", "--top", dest="topN", type=int, default=50, help=r"N video to be download")
+    parser.add_option("-n", "--top", dest="topN", type=int, default=1000, help=r"N video to be download")
     parser.add_option("-j", "--json", dest="json", default="top", help=r"json saved path")
-    parser.add_option("-V", "--vdir", dest="vdir", default=None, help=r"video save dir")
+    parser.add_option("-o", "--outlogpath", dest="outlogpath", default=None, help=r"out log path")
     parser.add_option("-f", "--overwrite", dest="overwrite", action="store_true", default=True, help=r"force overwrite existing file")
     parser.add_option("--hours", dest="hours", type=int, default=24, help=r"search in how many hours")
     parser.add_option("-p", "--point", dest="timepoint", default="now", help=r"now, yesterday, or time in '%Y.%m.%d-%H' format")
@@ -53,26 +59,76 @@ def main_check(opt):
     opt.json = "{:s}-{:d}.[{:s}].json".format(opt.json, opt.topN, time.strftime('%Y.%m.%d-%H', time.localtime(opt.end_epoch)))
     return 0
 
-def _create_module_log():
-    return logger.log2stdout(module_name)
+def do_elk_aggregation(opt):
+    elkSearcherMediaid = src.network.elk_seacher_mediaid.ElkSearcherMediaid()
+    return elkSearcherMediaid.get_search_result(opt)
+
+def do_elk_single_log_query(opt, index=None, program=None, query_key=None, query_value=None, output_path=None, result_prefix=None):
+
+    cmd = [ "python", \
+            "query_single_log.py"
+            ]
+
+    if result_prefix:
+        cmd.append("-j {:s}".format(result_prefix))
+    if index:
+        cmd.append("-i {:s}".format(index))
+    if program:
+        cmd.append("-g {:s}".format(program))
+    if query_key:
+        cmd.append("-k {:s}".format(query_key))
+    if query_value:
+        cmd.append("-v {:s}".format(query_value))
+    if output_path:
+        cmd.append("-o {:s}".format(output_path))
+
+    print ''.join(cmd)
+
+    retval = subprocess.call(cmd, 0, None, None, None, None)
+    print 'return =', retval
+    return retval
 
 if __name__ == "__main__":
     reload(sys)
     sys.setdefaultencoding('utf-8')     # <! 中文设置
     logger.g_logger = _create_module_log()
 
-    #
+    #get opt
     parser = main_parser()
     (opt, args) = parser.parse_args()
     logger.g_logger.info("********* start ********")
     logger.g_logger.info("opt=\n"+str(opt))
     if main_check(opt):
         exit(1)
-    elkSearcherMediaid = elk_seacher_mediaid.ElkSearcherMediaid()
-    videoDownloader = video_downloader.VideoDownloader()
-    buckets = elkSearcherMediaid.get_search_result(opt)
-    if opt.b_downl:
-        for bkt in buckets:
-            videoDownloader.videoDownload(bkt["key"], odir=opt.vdir, b_overwrite=opt.overwrite)
+
+    #1. download samples
+    (buckets, jsonPath) = do_elk_aggregation(opt)
+
+    # 2. download log
+    print "sample list name:",jsonPath
+
+    sample_list_result = src.watermark.data.file_opr.loadJson3(jsonPath)
+
+    print sample_list_result
+
+    if sample_list_result.has_key('responses'):
+        if sample_list_result['responses'][0].has_key('aggregations'):
+            buckets = sample_list_result['responses'][0]['aggregations']['topN']['buckets']
+            idx = 0
+            for bucket in buckets:
+                url = bucket["key"]
+                print url
+
+                prefix = "log-" + str(idx) + "-"
+                do_elk_single_log_query(opt, "logstash-mweibo-", "weibo_video_trans", "output_url", url, opt.outlogpath, prefix)
+                idx = idx + 1
+                # break
+        else:
+            print "aggregations not exist"
+
+        pass
+
+
+
 
 

@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import elk_searcher
 import json
+import os
 import time
 import tool.logger as logger
 import config.elk_query_config as elk_config
@@ -11,13 +12,22 @@ class ElkSearcherMediaid(elk_searcher.ElkSearcher):
         start_date = time.strftime('%Y.%m.%d', time.localtime(opts.start_epoch))
         end_date = time.strftime('%Y.%m.%d', time.localtime(opts.end_epoch))
 
+        if not opts.elk_query_index == '':
+            elk_config.elk_query_index = opts.elk_query_index
+
+        if not opts.elk_query == '':
+            elk_config.elk_query = opts.elk_query
+
+        if not opts.elk_query_field == '':
+            elk_config.elk_query_field = opts.elk_query_field
+
         query_index = {
-            "index": ['logstash-video-' + start_date],
+            "index": [elk_config.elk_query_index + start_date],
             "ignore_unavailable": True,
             # "preference": 1494948626374
         }
         if end_date != start_date:
-            query_index["index"].append('logstash-video-' + end_date)
+            query_index["index"].append(elk_config.elk_query_index + end_date)
 
         query_data = {
             "size": 0,
@@ -80,9 +90,23 @@ class ElkSearcherMediaid(elk_searcher.ElkSearcher):
             ret_dict["query_time"] = "{:s} ~ {:}".format(opts.start_time, opts.end_time)
             ret_dict["query_index"] = opts.query_index
             ret_dict["query_data"] = opts.query_data
-            #with open(opts.json, "wb") as f:
-                #json.dump(ret_dict, f, indent=4)
-            logger.g_logger.info("save resopnse data in " + opts.json)
+
+            jsonPath = None
+            if opts.jdir:
+                jsonPath = opts.jdir
+                if not os.path.exists(jsonPath):
+                    os.mkdir(jsonPath)
+
+                if not jsonPath[-1] == "/":
+                    jsonPath = jsonPath + "/"
+                jsonPath = jsonPath + opts.json
+            else:
+                jsonPath = opts.json
+
+            with open(jsonPath, "wb") as f:
+                json.dump(ret_dict, f, indent=4)
+            logger.g_logger.info("save resopnse data in " + jsonPath)
+
         responses = ret_dict['responses']
         buckets = responses[0]['aggregations']['topN']['buckets']
         top_count = 0
@@ -93,4 +117,4 @@ class ElkSearcherMediaid(elk_searcher.ElkSearcher):
         logger.g_logger.info("return top-{N:d} {top_count:d}/{all_count:d}={pecent:.2f}%".format(
             N=len(buckets), top_count=top_count, all_count=all_count,
             pecent=top_count * 100 / all_count))
-        return buckets
+        return buckets, jsonPath
