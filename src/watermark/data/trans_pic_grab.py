@@ -11,16 +11,25 @@ import datetime
 import tool.logger as logger
 import src.watermark.detection.videoProcess as videoProcess
 import numpy as np
+import src.network.video_downloader as video_downloader
 
 module_name = "src.watermark.data.trans_pic_grab."
 
 def _create_module_log():
     return logger.log2stdout(module_name)
 
+# -*- inputmode -*-
+# 0: 日志路径模式
+# 1： 视频TOP Object_ID模式，输入格式为CVS
+# -*- inputpath -*-
+# string，取值为输入信息目录
+# -*- outputpath -*-
+# string，取值为输出目录
 def main_parser():
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option("-i", "--inputlogpath", dest="inputlogpath", default=None, help=r"input log path")
+    parser.add_option("-m", "--inputmode", dest="inputmode", type=int, default=None, help=r"input log path")
+    parser.add_option("-i", "--inputlogpath", dest="inputpath", default=None, help=r"input path")
     parser.add_option("-o", "--outputpath", dest="outputpath", default=None, help=r"out log path")
     return parser
 
@@ -289,74 +298,29 @@ def grabVideoPic(input_log_json_path, output_path, sample_num=1, sub_folder=Fals
 
     print "-------------------------------------------"
 
-def grabVideoPics(log_path, output_path, max_log_num=None, sample_num=1, sub_folder=False, file_mode=None):
+def grabVideoPics1(bkts, output_path, sub_folder=False):
 
     if not os.path.exists(output_path):
         os.mkdir(output_path)
 
+    videoDownloader = video_downloader.VideoDownloader()
+    for bkt in bkts:
+        oid = bkt
+        print "input_url: ", oid
 
-    fps, fns = src.watermark.data.file_opr.eachFile(log_path, ".json")
-
-    file_num = 0
-    front_pic = 0
-    back_pic = 0
-
-    start_flag = False
-    for fp in fps:
-        print fp
-
-        file_num = file_num + 1
-        if max_log_num and file_num > max_log_num:
-            break
-
-        json_fullpath = fp
-        print "current log path:", json_fullpath
-
-        log = src.watermark.data.file_opr.loadJson3(json_fullpath)
-        oid = get_oid(log)
-        input_url = get_input_url(log)
-        print "input url:", input_url
-
-        output_file_path_f = output_path
-        output_file_path_b = output_path
-        if sub_folder:
-            output_file_path = output_path + oid + "/"
-            if output_file_path:
-                if not os.path.exists(output_file_path):
-                    os.mkdir(output_file_path)
-
-            output_file_path_f = output_path + oid + "/" + oid
-            output_file_path_b = output_path + oid + "/" + oid
-        else:
-            output_file_path_f = output_path + oid
-            output_file_path_b = output_path + oid
-
-        if sample_num > 1 and file_mode:
-            output_file_path_f = output_file_path_f + "_f" + file_mode
-            output_file_path_b = output_file_path_b + "_b" + file_mode
-        else:
-            output_file_path_f = output_file_path_f + "_f.jpg"
-            output_file_path_b = output_file_path_b + "_b.jpg"
-
-
-        input_url = updataUrl(input_url)
-        print "updated url: ", input_url
-
-        print output_file_path_f
-        print output_file_path_b
+        # 添加防盗链
+        input_url = videoDownloader.get_ssig_url_with_original(oid)
+        print "input_url: ", input_url
 
         #get video duraion
-
         video_metadata = findVideoMetada(input_url)
         if not video_metadata:
             print "find video metadata fail"
-            local_file_path = output_file_path + oid
-            downloadFile(input_url, local_file_path)
-            input_url = log_output_path
-            video_metadata = findVideoMetada(input_url)
+            continue
 
         if not video_metadata.has_key("streams"):
             print "video meta parse error"
+            continue
 
         video_stream = None
         for stream in video_metadata["streams"]:
@@ -367,6 +331,7 @@ def grabVideoPics(log_path, output_path, max_log_num=None, sample_num=1, sub_fol
 
         if not video_stream:
             print "no video stream"
+            continue
 
         print video_stream
         dur = None
@@ -374,31 +339,37 @@ def grabVideoPics(log_path, output_path, max_log_num=None, sample_num=1, sub_fol
             dur = video_stream["duration"]
         else:
             print "duration parse error"
+            continue
 
         if not dur:
             print "duration parse error"
+            continue
 
         if dur == "":
             print "duration parse error"
+            continue
 
         if float(dur) < 0:
             print "duration is negative"
+            continue
         dur = float(dur)
 
+        # create file name
+        output_file_path_f = output_path
+        if sub_folder:
+            output_file_path = output_path + "/" + oid + "/"
+            if output_file_path:
+                if not os.path.exists(output_file_path):
+                    os.mkdir(output_file_path)
 
-        grab1Pic(input_url, output_file_path_f, "00:00:00", sample_num)
-        front_pic = front_pic + 1
-
-        if dur > 1.0:
-            m, s = divmod(dur-1, 60)
-            h, m = divmod(m, 60)
-            seek_pos = "%02d:%02d:%02d" % (h, m, s)
-            grab1Pic(input_url, output_file_path_b, seek_pos, sample_num)
-            back_pic = back_pic + 1
+            output_file_path_f = output_path + "/" + oid + "/" + oid
         else:
-            print "dur less than 1s"
+            output_file_path_f = output_path + "/" + oid
 
-        print file_num, front_pic, back_pic
+        print "pic output path:",output_file_path_f
+
+        # grab the pic
+        grabImages(input_url,3,output_file_path_f,dur,3)
         print "-------------------------------------------"
 
 def grabVideoPics2(log_path, output_path, max_log_num=None, sample_num=1, sub_folder=False, file_mode=None):
@@ -516,7 +487,7 @@ def get_unique_log_and_grab_pics(log_output_path, unique_log_output_path, max_lo
     #print get_delogo_info_from_logfile("/Users/liuwen/Development/test/trans_lab/unique_output/4230282997709506.json")
 
     # grabVideoPics(unique_logs, unique_logs, 1000, 10, True, "%d.jpg")
-    grabVideoPics(unique_logs, unique_logs, max_log_num)
+    # grabVideoPics(unique_logs, unique_logs, max_log_num)
 
 if __name__ == "__main__":
     reload(sys)
@@ -528,8 +499,14 @@ if __name__ == "__main__":
     (opt, args) = parser.parse_args()
     logger.g_logger.info("********* start ********")
 
-    # 根据日志开始截图
-    grabVideoPics2(opt.inputlogpath, opt.outputpath, 4995, 3, True, "%d.jpg")
+    if opt.inputmode == 0:
+        # 根据日志开始截图
+        grabVideoPics2(opt.inputpath, opt.outputpath, 4995, 3, True, "%d.jpg")
+    elif opt.inputmode == 1:
+        bkts = ["1034:4257655233946385", "1034:4257704869331637"]
+        grabVideoPics1(bkts, opt.outputpath, True)
+
+    logger.g_logger.info("********* end ********")
 
 
 

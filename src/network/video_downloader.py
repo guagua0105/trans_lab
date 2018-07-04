@@ -52,7 +52,7 @@ class VideoDownloader():
         url = ret_dict['object']['original_url']
 
         if url == None:
-            logger.g_logger.warning("no url for label " + label)
+            logger.g_logger.warning("no url for original ")
         ssig_url = self.get_ssig_url(url)
         if not ssig_url:
             logger.g_logger.error("get ssig url for '%s' failed", url)
