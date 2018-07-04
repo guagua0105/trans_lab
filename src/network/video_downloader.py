@@ -107,3 +107,24 @@ class VideoDownloader():
                 logger.g_logger.error("Exception e = %s", e);
                 return (-3,None)
         return (0,opath)
+
+    def videoDownloadWithUrl(self, video_url, odir=None, name=None, b_overwrite=False):
+        ssig_url = self.get_ssig_url(video_url)
+        if not ssig_url:
+            return (-2,None)
+
+        opath = odir + "/" + name + ".mp4"
+        logger.g_logger.info("save_path = " + opath)
+
+        # 下载视频
+        if not self.checkoutput(opath, b_overwrite):
+            try:
+                link = urllib2.urlopen(ssig_url)
+                with open(opath, 'wb') as f:
+                    f.write(link.read())
+                link.close()
+                logger.g_logger.info("download finished")
+            except Exception as e:
+                logger.g_logger.error("Exception e = %s", e);
+                return (-3,None)
+        return (0,opath)
