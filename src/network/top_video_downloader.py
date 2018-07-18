@@ -11,6 +11,7 @@ module_name = "worker.test_top_video_downloader"
 def main_parser():
     from optparse import OptionParser
     parser = OptionParser()
+    parser.add_option("-m", "--inputmode", dest="inputmode", type=int, default=None, help=r"input log path")
     parser.add_option("-n", "--top", dest="topN", type=int, default=50, help=r"N video to be download")
     parser.add_option("-j", "--json", dest="json", default="top", help=r"json saved path")
     parser.add_option("-V", "--vdir", dest="vdir", default=None, help=r"video save dir")
@@ -68,15 +69,33 @@ if __name__ == "__main__":
     logger.g_logger.info("opt=\n"+str(opt))
     if main_check(opt):
         exit(1)
-    elkSearcherMediaid = elk_seacher_mediaid.ElkSearcherMediaid()
+
     videoDownloader = video_downloader.VideoDownloader()
-    buckets = elkSearcherMediaid.get_search_result(opt)
-    if opt.b_downl:
-        count = 1
-        for bkts in buckets:
+    if opt.inputmode == 0:
+        # 根据日志开始截图
+        elkSearcherMediaid = elk_seacher_mediaid.ElkSearcherMediaid()
+        buckets = elkSearcherMediaid.get_search_result(opt)
+        if opt.b_downl:
+            count = 1
+            for bkts in buckets:
+                for bkt in bkts:
+                    filename = "file_{:d}".format(count)
+                    videoDownloader.videoDownloadWithUrl(bkt["key"], odir=opt.vdir, name=filename,
+                                                         b_overwrite=opt.overwrite)
+                    count = count + 1
+    elif opt.inputmode == 1:
+        bkts = ["1034:4257655233946385", "1034:4257704869331637"]
+        if opt.b_downl:
+            count = 1
             for bkt in bkts:
+                oid = bkt
+                print "input_url: ", oid
+
+                # 添加防盗链
+                input_url = videoDownloader.get_ssig_url_with_original(oid)
+                print "*********input_url: ***********", input_url
+
                 filename = "file_{:d}".format(count)
-                videoDownloader.videoDownloadWithUrl(bkt["key"], odir=opt.vdir, name=filename, b_overwrite=opt.overwrite)
+                videoDownloader.videoDownloadWithUrl(input_url, odir=opt.vdir, name=filename,
+                                                         b_overwrite=opt.overwrite)
                 count = count + 1
-
-

@@ -21,7 +21,8 @@ class VideoDownloader():
     def get_ssig_url(self, input_url):
         # 获取 ssig
         try:
-            get_ssig_api = url_config.ssig_api_str % (url_config.appkey, input_url)
+            #get_ssig_api = url_config.ssig_api_str % (url_config.appkey, input_url)
+            get_ssig_api = url_config.ssig_api_str % (input_url)
             logger.g_logger.info("get_ssig_api = " + get_ssig_api)
             req = urllib2.urlopen(get_ssig_api)
             ret_json = req.read()
@@ -128,3 +129,4 @@ class VideoDownloader():
                 logger.g_logger.error("Exception e = %s", e);
                 return (-3,None)
         return (0,opath)
+
